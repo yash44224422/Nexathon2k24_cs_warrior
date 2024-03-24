@@ -1,0 +1,154 @@
+{% extends 'base.html'%}
+{% block content %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<!-- <link rel="stylesheet" href="./style.css"> -->
+<div class="homepage bg-theme ">
+    {% include 'navbar.html'%}
+
+    <div class="container h-75 d-flex justify-content-center align-items-center flex-column">
+        <div id="qrcode"></div>
+
+        <div id="linkDemo"></div>
+        
+    </div>
+
+</div>
+
+<style>
+    .homepage{
+        height: 100vh;
+   
+    }
+
+    .btn{
+        border-radius: 25px;
+        font-size: 18px;
+        padding: 10px 30px;
+        background: #fff;
+        color: #4A00E0;
+    }
+    .allstudent_wrapper{
+        background: #fff;
+        padding: 25px;
+        border-radius: 20px;
+    }
+    .theme_text{
+        color: #4A00E0;
+    }
+    table.allstudent{      
+        color: #4A00E0;
+        
+    }
+    table.allstudent td{
+        padding: 10px 30px;
+    }
+    table.allstudent th{
+        padding: 10px 30px;
+    }
+</style>
+<script>
+      const characters =
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+        var userLocation;
+        var latitude;
+        var longitude;
+        function getLocation() {
+            console.log(navigator.geolocation)
+            if (navigator.geolocation) {
+                console.log("userLocation")
+                navigator.geolocation.getCurrentPosition(function(position){
+                    latitude = position.coords.latitude;
+                    longitude = position.coords.longitude;  
+                    let newUrl = generateString(12,latitude,longitude)  
+                    var qrcode = new QRCode("qrcode", newUrl);
+                    $("#linkDemo").append(
+                    `
+                        <a href="${newUrl}">Link</a>
+                    `
+                    )
+                    console.log("Latitude: " + latitude + ", Longitude: " + longitude);
+                });
+            } 
+        }
+     
+        getLocation()
+
+
+      function generateString(length,lat,lang) {
+        window.location.href
+        
+        let result = "";
+        const charactersLength = characters.length;
+        for (let i = 0; i < length; i++) {
+          result += characters.charAt(
+            Math.floor(Math.random() * charactersLength)
+          );
+        }
+        let today = new Date();
+        let parseLink = `${window.location.href}?code=${result}&date=${today}`;
+        let course_name = "";
+        var csrftoken = getCookie('csrftoken');
+        
+        $.ajax({
+            url: `/demoapp/appadmin/qrcodelog/{{ course_name }}/{{ subject_name }}/${result}?lat=${lat}&lang=${lang}`,
+            type: 'POST',
+            data: {
+                csrfmiddlewaretoken: csrftoken
+                // Other data you want to include in the request
+            },
+            success: function(data, status) {
+                alert("Data: " + data + "\nStatus: " + status);
+            },
+            error: function(xhr, status, error) {
+                // Handle errors
+                console.error(xhr.responseText);
+            }
+        });
+        // setTimeout(function(){
+        //   result = "x";
+        //   $.ajax({
+        //     url: `/demoapp/appadmin/qrcodelog/{{ course_name }}/{{ subject_name }}/${result}`,
+        //     type: 'POST',
+        //     data: {
+        //         csrfmiddlewaretoken: csrftoken
+        //         // Other data you want to include in the request
+        //     },
+        //     success: function(data, status) {
+        //         alert("Data: " + data + "\nStatus: " + status);
+        //     },
+        //     error: function(xhr, status, error) {
+        //         // Handle errors
+        //         console.error(xhr.responseText);
+        //     }
+        // });
+        // alert('QR code Expired!!!')
+        // },30000)
+        // https://fea7-103-121-73-131.ngrok-free.app/demoapp/hello/
+        let newUrl = `https://d83e-103-121-73-131.ngrok-free.app/demoapp/student/markattendance/{{ course_name }}/{{ subject_name }}/${result}?lat=${lat}&lang=${lang}`;
+        return newUrl;
+      }
+
+
+
+      function getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = jQuery.trim(cookies[i]);
+                // Check if this cookie string begins with the name we want
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    </script>
+
+</script>
+{% endblock %}
+
